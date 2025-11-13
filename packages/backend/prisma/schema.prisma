@@ -106,7 +106,7 @@ model Reflection {
 
 model ReflectionPrompt {
   id         String @id @default(uuid())
-  promptText String @map("prompt_text")
+  promptText String @unique @map("prompt_text")
   frequency  String // daily, weekly, monthly
   category   String
   active     Boolean @default(true)
