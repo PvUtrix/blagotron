@@ -1,0 +1,29 @@
+{
+  "name": "blagotron",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Life & Career Design Platform",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "pnpm --parallel --filter './packages/*' dev",
+    "build": "pnpm --filter './packages/*' build",
+    "test": "pnpm --filter './packages/*' test",
+    "lint": "pnpm --filter './packages/*' lint",
+    "clean": "pnpm --filter './packages/*' clean && rm -rf node_modules",
+    "backend:dev": "pnpm --filter @blagotron/backend dev",
+    "web:dev": "pnpm --filter @blagotron/web dev",
+    "bot:dev": "pnpm --filter @blagotron/telegram-bot dev"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "prettier": "^3.1.1",
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

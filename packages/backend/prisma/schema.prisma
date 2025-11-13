@@ -1,0 +1,129 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String   @map("password_hash")
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  lastLoginAt   DateTime @default(now()) @map("last_login_at")
+  status        String   @default("active") // active, suspended, deleted
+
+  profile             Profile?
+  goals               Goal[]
+  activityLogs        ActivityLog[]
+  lifeBalanceSnapshots LifeBalanceSnapshot[]
+  reflections         Reflection[]
+  refreshTokens       RefreshToken[]
+
+  @@map("users")
+}
+
+model Profile {
+  userId      String @id @map("user_id")
+  displayName String @map("display_name")
+  timezone    String @default("UTC")
+  language    String @default("en")
+  preferences Json   @default("{}")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model Goal {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  title           String
+  description     String?
+  domain          String   // career, health, relationships, etc.
+  timeline        String   // short, medium, long
+  targetDate      DateTime? @map("target_date")
+  status          String   @default("active") // active, paused, completed, abandoned
+  progressPercent Int      @default(0) @map("progress_percent")
+  milestones      Json     @default("[]")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("goals")
+}
+
+model ActivityLog {
+  id           String   @id @default(uuid())
+  userId       String   @map("user_id")
+  activityType String   @map("activity_type")
+  timestamp    DateTime @default(now())
+  duration     Int      // minutes
+  energyDelta  Int      @map("energy_delta") // -3 to +3
+  flowMetrics  Json?    @map("flow_metrics")
+  context      Json     @default("{}")
+  notes        String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("activity_logs")
+}
+
+model LifeBalanceSnapshot {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  timestamp DateTime @default(now())
+  scores    Json     // { domain: score }
+  notes     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("life_balance_snapshots")
+}
+
+model Reflection {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  timestamp DateTime @default(now())
+  promptId  String?  @map("prompt_id")
+  prompt    String?
+  response  String
+  tags      String[] @default([])
+  mood      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, timestamp])
+  @@map("reflections")
+}
+
+model ReflectionPrompt {
+  id         String @id @default(uuid())
+  promptText String @map("prompt_text")
+  frequency  String // daily, weekly, monthly
+  category   String
+  active     Boolean @default(true)
+
+  @@map("reflection_prompts")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("refresh_tokens")
+}
